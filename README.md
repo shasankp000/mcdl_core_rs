@@ -56,3 +56,5 @@ Usage:
 ```assets_downloader("1.19.2", "your_installation_directory").expect("Error message")```
 
 Here installation directory will be the same as used in the function above.
+
+This project automatically uses https://github.com/shasankp000/requests_rs, so no need to add it to cargo.toml
