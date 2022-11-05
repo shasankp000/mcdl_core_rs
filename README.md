@@ -6,6 +6,8 @@ A Minecraft downloader written in rust,
 
 As of this moment in the initial release of the downloader, the downloader only supports ```release``` versions of vanilla mc. More support like downloading ```snapshots```, modloaders like ```fabric```, ```forge``` etc, will be added in updates.
 
+src/main.rs for the manual tests I did
+
 ## Documentation
 
 ## Configuration updater
