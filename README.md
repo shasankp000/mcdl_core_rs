@@ -1,7 +1,6 @@
 # mcdl_core_rs
 A Minecraft downloader written in rust
 
-https://crates.io/crates/minecraft_downloader_core
 
 ## Features 
 
@@ -60,4 +59,48 @@ Usage:
 
 Here installation directory will be the same as used in the function above.
 
-This project uses https://github.com/shasankp000/requests_rs
+
+# Changelog v0.1.2
+
+Added some new functions related to minecraft launcher, which will also be used by my next upcoming crate
+
+## Functions
+
+## extract_natives
+
+Downloads native libraries for the given game version to a given path.
+Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded
+This function can be used my minecraft launcher libraries to extract the natives to a certain path and pass it to the minecraft launching command.
+
+```use minecraft_downloader_core::main::game_downloader::extract_natives;```
+ 
+```extract_natives("1.19.2", "minecraft_installation_directory", "path_to_extract_natives_to", "windows/linux/osx");```
+
+Implemented only for windows at the moment.
+
+## get_logging_arg
+
+Gets the log4j2FilePath argument for the given game version
+
+Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded
+
+This function can be used my minecraft launcher libraries to get the log4j2 coniguration file path and pass it to the minecraft launching command.
+
+```use minecraft_downloader_core::main::game_downloader::get_logging_arg;```
+
+```get_logging_arg("1.19.2", "minecraft_installation_path")```
+
+## get_main_class
+
+Gets the mainClass of minecraft for the given game version.
+
+Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded.
+
+This function can be used my minecraft launcher libraries to get the mainClass and pass it to the minecraft launching command.
+
+```use minecraft_downloader_core::main::game_downloader::get_main_class;```
+
+```get_main_class("1.19.2", "minecraft_installation_path")```
+
+
+This project uses https://github.com/shasankp000/requests_rs (updated to v0.1.5)
