@@ -252,6 +252,30 @@ pub mod main {
         }
 
 
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Res {
+                libraries: Vec<Libraries>,
+        }
+            
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Libraries {
+                downloads: Downloads,
+                name: String,
+        }
+            
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Downloads {
+            artifact: Artifact,
+        }
+            
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Artifact {
+            path: String,
+            sha1: String,
+            size: i32,
+            url: String
+        }
+
         ////
         /// ###  Downloads the respective libraries for the given game version
         ///
@@ -264,30 +288,7 @@ pub mod main {
         /// ```
         pub fn lib_downloader(game_ver: &str, install_dir: &str) -> Result<(), std::io::Error> {
 
-            #[derive(Debug, Serialize, Deserialize)]
-            struct Res {
-                libraries: Vec<Libraries>,
-            }
             
-            #[derive(Debug, Serialize, Deserialize)]
-            struct Libraries {
-                downloads: Downloads,
-                name: String,
-            }
-            
-            #[derive(Debug, Serialize, Deserialize)]
-            struct Downloads {
-                artifact: Artifact,
-            }
-            
-            #[derive(Debug, Serialize, Deserialize)]
-            struct Artifact {
-                path: String,
-                sha1: String,
-                size: i32,
-                url: String
-
-            }
 
             let mc_dir = format!("{}/.minecraft", install_dir);
             let os_type = env::consts::OS; // os type
@@ -302,7 +303,7 @@ pub mod main {
             let libs_json: Res = serde_json::from_str(&libs_info).expect("Error parsing!");
 
             
-            if os_type == "windows".trim() {
+            if cfg!(target_os = "windows") && os_type == "windows".trim() {
                 // downloading windows only libs
 
                 let libs_iter1 = libs_json.libraries.iter()
@@ -376,6 +377,7 @@ pub mod main {
             
             Ok(())
         }
+
 
         ////
         /// ###  Downloads the respective assets for the given game version
@@ -502,6 +504,166 @@ pub mod main {
 
             Ok(())
         }
+
+
+        // minecraft launcher related functions
+
+        /// Downloads native libraries for the given game version to a given path.
+        /// 
+        /// Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded
+        /// 
+        /// This function can be used my minecraft launcher libraries to extract the natives to a certain path and pass it to the minecraft launching command.
+        /// 
+        /// ```
+        /// use minecraft_downloader_core::main::game_downloader::extract_natives;
+        /// 
+        /// extract_natives("1.19.2", "minecraft_installation_directory", "path_to_extract_natives_to", "windows/linux/osx");
+        /// 
+        /// ```
+        pub fn extract_natives(game_ver:&str, install_dir: &str ,path_to_extract:&str, platform:&str) {
+
+            println!("Checking for natives directory....");
+            
+            let mc_dir = format!("{}\\.minecraft", install_dir);
+
+            let libs_info = fs::read_to_string(format!("{}/versions/{}/{}.json", mc_dir, game_ver, game_ver)).expect("Error reading file!");
+
+            let libs_json: Res = serde_json::from_str(&libs_info).expect("Error parsing!");
+
+            if cfg!(target_os = "windows") && platform == "windows".trim() {
+
+                let libs_iter1 = libs_json.libraries.iter()
+                    .filter(|data| data.downloads.artifact.url.contains("lwjgl") && data.downloads.artifact.url.contains("windows") || data.downloads.artifact.url.contains("text2speech-1.13.9-natives-windows"));
+
+
+                println!("Windows only libraries.");
+
+                let mut lib_url_array: Vec<&String> = Vec::new();
+                let mut dirpath_array: Vec<String> = Vec::new();
+
+
+                for lib in libs_iter1 {
+                    let path1 = Path::new(&lib.downloads.artifact.path);
+
+                    lib_url_array.push(&lib.downloads.artifact.url);
+                    dirpath_array.push(path1.parent().unwrap().to_string_lossy().to_string());
+
+                }
+
+                for dir in dirpath_array.iter() {
+                    
+                    if Path::new(&format!("{path_to_extract}\\natives\\{dir}")).exists() {
+                        println!("{} dir already exists, ignoring...", dir)
+                    }
+                    else {
+                       fs::create_dir_all(format!("{path_to_extract}\\natives\\{dir}")).expect("Failed to create dir."); // recursively creates all directories in a path.
+                       println!("Created {path_to_extract}\\natives\\{dir}");
+                    }
+   
+                }
+
+                for (url, dir1) in lib_url_array.iter().zip(dirpath_array.iter()) {
+
+                    requests::file_downloader::async_download_file(url, &format!("{path_to_extract}\\natives\\{dir1}")).expect("Error downloading libraries!");
+                }
+                
+                println!("All natives have been extracted successfully.");
+
+
+            }
+
+        }
+
+        /// Gets the log4j2FilePath argument for the given game version
+        /// 
+        /// Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded
+        /// 
+        /// This function can be used my minecraft launcher libraries to get the log4j2 coniguration file path and pass it to the minecraft launching command.
+        /// 
+        /// ```
+        /// use minecraft_downloader_core::main::game_downloader::get_logging_arg;
+        /// 
+        /// get_logging_arg("1.19.2", "minecraft_installation_path")
+        /// ```
+        pub fn get_logging_arg(game_ver:&str, install_dir: &str) -> String {
+
+            #[derive(Debug,Serialize,Deserialize)]
+            struct GameFiles {
+                logging: Logging
+            }
+
+            #[derive(Debug,Serialize,Deserialize)]
+            struct Logging {
+                client: Client
+            }
+
+            #[derive(Debug,Serialize,Deserialize)]
+            struct Client {
+                argument: String,
+                file: File,
+                r#type: String
+            }
+
+            #[derive(Debug,Serialize,Deserialize)]
+            struct File {
+                id: String,
+                sha1: String,
+                size: i32,
+                url: String
+            }
+
+
+            let mc_dir = format!("{}\\.minecraft", install_dir);
+
+            let game_info = fs::read_to_string(format!("{}/versions/{}/{}.json", mc_dir, game_ver, game_ver)).expect("Error reading file!");
+
+            let game_files: GameFiles = serde_json::from_str(&game_info).expect("Error reading from string!");
+
+            let arg = game_files.logging.client.argument[0..25].to_string();
+
+            let xml_id = game_files.logging.client.file.id;
+
+            let constructed_argument = format!("{arg}={install_dir}\\.minecraft\\assets\\log_configs\\{xml_id}");
+
+            constructed_argument
+
+        }
+
+
+        /// Gets the mainClass of minecraft for the given game version
+        /// 
+        /// Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded.
+        /// 
+        /// This function can be used my minecraft launcher libraries to get the mainClass and pass it to the minecraft launching command.
+        /// 
+        /// ```
+        /// use minecraft_downloader_core::main::game_downloader::get_main_class;
+        /// 
+        /// get_main_class("1.19.2", "minecraft_installation_path")
+        /// ```
+        pub fn get_main_class(game_ver: &str, install_dir: &str) -> String {
+            #[derive(Debug,Serialize,Deserialize)]
+            #[serde(rename_all="camelCase")]
+            struct GameFiles {
+                main_class: String,
+                minimum_launcher_version: i32,
+                release_time: String,
+                time: String,
+                r#type: String
+            }
+
+            let mc_dir = format!("{}\\.minecraft", install_dir);
+
+            let game_info = fs::read_to_string(format!("{}/versions/{}/{}.json", mc_dir, game_ver, game_ver)).expect("Error reading file!");
+
+            let game_files: GameFiles = serde_json::from_str(&game_info).expect("Error reading from string!");
+
+            let main_class = game_files.main_class;
+
+            main_class
+        }
+        
+
 
 
     }

@@ -1,10 +1,20 @@
-use minecraft_downloader_core::main;
+// use minecraft_downloader_core::main;
 
 // use std::collections::HashMap;
 
 fn main() {
 
     // MANUAL TESTS
+
+    //main::game_downloader::extract_natives("1.19.2", "D:\\python_programs\\pycraft", "./", "windows")
+
+    // let arg = main::game_downloader::get_logging_arg("1.19.2", "D:\\python_programs\\pycraft");
+
+    // println!("{arg}");
+
+    // let main_class = main::game_downloader::get_main_class("1.19.2", "D:\\python_programs\\pycraft");
+
+    // print!("{main_class}");
 
     // main::config_updater::update_configs("./").expect("Error updating configs");
 
