@@ -16,6 +16,12 @@ fn main() {
 
     // print!("{main_class}");
 
+    // let cp = main::game_downloader::get_class_path("D:\\python_programs\\pycraft", "1.19.2");
+
+    // println!("{cp}");
+
+    //main::game_downloader::rule_says_yes("D:\\python_programs\\pycraft", "1.19.2");
+
     // main::config_updater::update_configs("./").expect("Error updating configs");
 
     //main::game_downloader::version_downloader("1.19.2", "./", "release").expect("Error downloading game!");
