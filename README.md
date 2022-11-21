@@ -96,11 +96,22 @@ Gets the mainClass of minecraft for the given game version.
 
 Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded.
 
-This function can be used my minecraft launcher libraries to get the mainClass and pass it to the minecraft launching command.
+This function can be used by minecraft launcher libraries to get the mainClass and pass it to the minecraft launching command.
 
 ```use minecraft_downloader_core::main::game_downloader::get_main_class;```
 
 ```get_main_class("1.19.2", "minecraft_installation_path")```
 
+## get_class_path
+
+Generates the classpath for -cp argument in minecraft command for given version and returns in the form of a string
+
+Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded.
+
+This function can be used by minecraft launcher libraries to get the mainClass and pass it to the minecraft launching command.
+
+```use minecraft_downloader_core::main::game_downloader::get_class_path;```
+
+```get_class_path("minecraft_installation_path", "1.19.2")```
 
 This project uses https://github.com/shasankp000/requests_rs (updated to v0.1.5)
