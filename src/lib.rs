@@ -253,16 +253,40 @@ pub mod main {
 
 
         #[derive(Debug, Serialize, Deserialize)]
-        struct Res {
+        pub struct Res {
                 libraries: Vec<Libraries>,
         }
             
         #[derive(Debug, Serialize, Deserialize)]
-        struct Libraries {
+        pub struct Libraries {
                 downloads: Downloads,
                 name: String,
+                #[serde(default)]
+                rules: Option<Vec<Rules>>
         }
+
+        // impl Iterator for &Libraries {
+        //     type Item = String;
+
+        //     fn next(&mut self) -> Option<Self::Item> {
+        //         let name = self.name.clone();
+
+        //         Some(name)
+        //     }
+
+        // }
             
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Rules {
+            action: String,
+            os: Os
+        }
+
+        #[derive(Debug, Serialize, Deserialize)]
+        struct Os {
+            name: String
+        }
+
         #[derive(Debug, Serialize, Deserialize)]
         struct Downloads {
             artifact: Artifact,
@@ -530,6 +554,7 @@ pub mod main {
 
             let libs_json: Res = serde_json::from_str(&libs_info).expect("Error parsing!");
 
+
             if cfg!(target_os = "windows") && platform == "windows".trim() {
 
                 let libs_iter1 = libs_json.libraries.iter()
@@ -634,7 +659,7 @@ pub mod main {
         /// 
         /// Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded.
         /// 
-        /// This function can be used my minecraft launcher libraries to get the mainClass and pass it to the minecraft launching command.
+        /// This function can be used by minecraft launcher libraries to get the mainClass and pass it to the minecraft launching command.
         /// 
         /// ```
         /// use minecraft_downloader_core::main::game_downloader::get_main_class;
@@ -663,8 +688,55 @@ pub mod main {
             main_class
         }
         
+        /// Generates the classpath string for -cp argument in minecraft jvm comamnd for the given game version
+        /// 
+        /// Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded.
+        /// 
+        /// This function can be used by minecraft launcher libraries to get the classpath and pass it to the minecraft launching command.
+        /// 
+        /// ```
+        /// use minecraft_downloader_core::main::game_downloader::get_class_path;
+        /// 
+        /// get_main_class("minecraft_installation_path", "1.19.2")
+        /// ```
+        pub fn get_class_path(install_dir: &str, game_ver: &str) -> String{
 
+            let mc_dir = format!("{}\\.minecraft", install_dir);
 
+            let libs_info = fs::read_to_string(format!("{}/versions/{}/{}.json", mc_dir, game_ver, game_ver)).expect("Error reading file!");
+
+            let libs_json: Res = serde_json::from_str(&libs_info).expect("Error parsing!");
+
+            let mut classpath = String::new();
+
+            // Get the platform independent libs.
+
+            let independent_str = libs_json.libraries.iter()
+                .filter(|data| !data.downloads.artifact.path.contains("natives-windows") && !data.downloads.artifact.path.contains("natives-linux") && !data.downloads.artifact.path.contains("natives-windows") && !data.downloads.artifact.path.contains("natives-macos") && !data.downloads.artifact.path.contains("natives-macos-arm64") && !data.downloads.artifact.path.contains("unix") && !data.downloads.artifact.path.contains("linux-x86_64") && !data.downloads.artifact.path.contains("linux-aarch_64") && !data.downloads.artifact.path.contains("java-objc-bridge"));
+
+            for independent_paths in independent_str {
+                // println!("{}", independent_paths.downloads.artifact.path)
+                classpath+=&format!("{}\\libraries\\{};", mc_dir , independent_paths.downloads.artifact.path)
+            };
+
+            
+            //Get the platform dependent libs
+
+            if cfg!(target_os = "windows") {
+                let native_str = libs_json.libraries.iter()
+                .filter(|data|data.downloads.artifact.path.contains("natives-windows"));
+
+                for native_paths in native_str {
+                    classpath+=&format!("{}\\libraries\\{};", mc_dir ,native_paths.downloads.artifact.path)
+                }
+            }
+
+            
+        
+            classpath
+            
+
+        }
 
     }
 }
