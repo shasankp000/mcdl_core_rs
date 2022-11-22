@@ -105,6 +105,10 @@ This function can be used by minecraft launcher libraries to get the mainClass a
 
 ```get_main_class("1.19.2", "minecraft_installation_path")```
 
+# Changelog v0.1.3
+
+Added a new function get_class_path
+
 ## get_class_path
 
 Generates the classpath for -cp argument in minecraft command for given version and returns in the form of a string
