@@ -1,12 +1,22 @@
 [package]
 name = "minecraft_downloader_core"
-version = "0.1.0"
+version = "0.1.4"
 edition = "2021"
+authors = ["shasankp000 <shasankp.14@gmail.com>"]
+description = "A Minecraft downloader written in rust"
+rust-version = "1.65"
+readme = "README.md"
+license = "BSD-2-Clause"
+keywords = ["minecraft", "minecraft_downloader", "minecraft_launcher"]
+categories = ["algorithms"]
+homepage = "https://github.com/shasankp000/mcdl_core_rs"
+documentation = "https://github.com/shasankp000/mcdl_core_rs#readme"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-requests_rs = "0.1.3"
+requests_rs = "0.1.5"
 serde = "1.0"
 serde_json = "1.0"
 serde_derive = "1.0"
+whoami = "1.2.3"
