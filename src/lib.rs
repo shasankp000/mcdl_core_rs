@@ -13,6 +13,7 @@ pub mod main {
         use requests_rs::requests;
         use std::env;
         use std::fs;
+        use whoami::username;
      
         
         /// 
@@ -69,8 +70,9 @@ pub mod main {
             let mc_dir = format!("{}/.minecraft", install_dir);
             let os_type = env::consts::OS; // os type
 
-            let user_home_dir = env::home_dir().unwrap(); // more like home dir in unix based systems
-            let home_dir_str = user_home_dir.as_os_str().to_str().unwrap(); // converting to str
+            let sys_username = username();
+
+            let home_dir_str = format!("C:\\Users\\{}", sys_username);
 
             println!("Running initial actions....");
 
@@ -181,6 +183,7 @@ pub mod main {
         use requests_rs::requests;
         use std::env;
         use std::fs::{self};
+        use whoami::username;
 
         use std::collections::HashMap;
 
@@ -199,8 +202,9 @@ pub mod main {
             let mc_dir = format!("{}/.minecraft", install_dir);
             let os_type = env::consts::OS; // os type
 
-            let user_home_dir = env::home_dir().unwrap(); // more like home dir in unix based systems
-            let home_dir_str = user_home_dir.as_os_str().to_str().unwrap(); // converting to str
+            let sys_username = username();
+
+            let home_dir_str = format!("C:\\Users\\{}", sys_username);
 
             if r#type == "release" {
 
