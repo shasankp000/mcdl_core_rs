@@ -1,6 +1,9 @@
 # mcdl_core_rs
 A Minecraft downloader written in rust
 
+## Changelog v0.1.4
+
+Removed all deprecated functions.
 
 ## Features 
 
