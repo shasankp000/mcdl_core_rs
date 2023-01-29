@@ -1,6 +1,6 @@
 [package]
 name = "minecraft_downloader_core"
-version = "0.1.5"
+version = "0.1.6"
 edition = "2021"
 authors = ["shasankp000 <shasankp.14@gmail.com>"]
 description = "A Minecraft downloader written in rust"
