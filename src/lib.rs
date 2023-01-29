@@ -67,22 +67,23 @@ pub mod main {
 
             // type JsonMap = Vec<>;
 
-            let mc_dir = format!("{}/.minecraft", install_dir);
             let os_type = env::consts::OS; // os type
 
-            let sys_username = username();
-
-            let home_dir_str = format!("C:\\Users\\{}", sys_username);
+            let mc_dir = format!("{}/.minecraft", install_dir);
 
             println!("Running initial actions....");
 
-            println!("{}", os_type);
-            println!("{}", home_dir_str);    
+            println!("Detected operating system: {}", os_type);
             
 
-            let version_json_dir = format!("{}/AppData/Roaming/version_jsons", home_dir_str);
-
             if os_type == "windows".trim() {
+
+
+                let sys_username = username();
+
+                let home_dir_str = format!("C:\\Users\\{}", sys_username);
+
+                let version_json_dir = format!("{}/AppData/Roaming/version_jsons", home_dir_str);
 
                 // check if dir exists
                 if Path::new(&version_json_dir).exists(){
@@ -111,65 +112,154 @@ pub mod main {
                 }
 
 
-            }
-
-            if Path::new(&mc_dir).exists() {
-                println!(".minecraft dir already exists, ignoring...")
-            }
-            else  {
-                fs::create_dir(&mc_dir).expect("Failed to create dir.");
-                println!("Created {}", mc_dir);
-            }
-
+                
+                // check for minecraft directory
+                
+                if Path::new(&format!("{}/versions", mc_dir)).exists() {
+                    println!("versions dir already exists, ignoring...")
+                }
+                else  {
+                    fs::create_dir(format!("{}/versions", mc_dir)).expect("Failed to create dir.");
+                    println!("Created {mc_dir}/versions");
+                }
+    
+    
+                if Path::new(&format!("{}/libraries", mc_dir)).exists() {
+                    println!("libraries dir already exists, ignoring...")
+                }
+                else  {
+                    fs::create_dir(format!("{}/libraries", mc_dir)).expect("Failed to create dir.");
+                    println!("Created {mc_dir}/libraries");
+                }
+                
+    
+                if Path::new(&format!("{}/assets", mc_dir)).exists() {
+                    println!("assets dir already exists, ignoring...")
+                }
+                else  {
+                    fs::create_dir(format!("{}/assets", mc_dir)).expect("Failed to create dir.");
+                    println!("Created {mc_dir}/assets");
+                }
+    
+                requests::file_downloader::async_download_file("https://launchermeta.mojang.com/mc/game/version_manifest.json", &version_json_dir).expect("Error fetching data!");
+    
+                let f1 = fs::read_to_string(format!("{}/version_manifest.json", version_json_dir)).expect("Error opening file!");
+    
+                //let json_value: serde_json::value::Value = serde_json::from_str(f1.as_str())?;
+    
+                let versions_manifest: VersionsManifest = serde_json::from_str(f1.as_str())?;
+    
+                
             
-            if Path::new(&format!("{}/versions", mc_dir)).exists() {
-                println!("versions dir already exists, ignoring...")
-            }
-            else  {
-                fs::create_dir(format!("{}/versions", mc_dir)).expect("Failed to create dir.");
-                println!("Created {mc_dir}/versions");
-            }
-
-
-            if Path::new(&format!("{}/libraries", mc_dir)).exists() {
-                println!("libraries dir already exists, ignoring...")
-            }
-            else  {
-                fs::create_dir(format!("{}/libraries", mc_dir)).expect("Failed to create dir.");
-                println!("Created {mc_dir}/libraries");
-            }
-            
-
-            if Path::new(&format!("{}/assets", mc_dir)).exists() {
-                println!("assets dir already exists, ignoring...")
-            }
-            else  {
-                fs::create_dir(format!("{}/assets", mc_dir)).expect("Failed to create dir.");
-                println!("Created {mc_dir}/assets");
-            }
-
-            requests::file_downloader::async_download_file("https://launchermeta.mojang.com/mc/game/version_manifest.json", &version_json_dir).expect("Error fetching data!");
-
-            let f1 = fs::read_to_string(format!("{}/version_manifest.json", version_json_dir)).expect("Error opening file!");
-
-            //let json_value: serde_json::value::Value = serde_json::from_str(f1.as_str())?;
-
-            let versions_manifest: VersionsManifest = serde_json::from_str(f1.as_str())?;
-
-            
-        
-            let snapshots_and_releases= versions_manifest.versions.iter()
-                .filter(|version| matches!(version.kind, VersionKind::Release | VersionKind::Snapshot));
-
-
-            for version in snapshots_and_releases {
-                if version.kind == VersionKind::Release {
-                    requests::file_downloader::async_download_file(&version.url, &format!("{}/release", version_json_dir)).expect("Error downloading file!");
+                let snapshots_and_releases= versions_manifest.versions.iter()
+                    .filter(|version| matches!(version.kind, VersionKind::Release | VersionKind::Snapshot));
+    
+    
+                for version in snapshots_and_releases {
+                    if version.kind == VersionKind::Release {
+                        requests::file_downloader::async_download_file(&version.url, &format!("{}/release", version_json_dir)).expect("Error downloading file!");
+                    }
+    
+                    if version.kind == VersionKind::Snapshot {
+                        requests::file_downloader::async_download_file(&version.url, &format!("{}/snapshot", version_json_dir)).expect("Error downloading file!");
+                    }
                 }
 
-                if version.kind == VersionKind::Snapshot {
-                    requests::file_downloader::async_download_file(&version.url, &format!("{}/snapshot", version_json_dir)).expect("Error downloading file!");
+            }
+
+            else if os_type == "linux".trim() {
+                let sys_username = username();
+
+                let home_dir_str = format!("/home/{}", sys_username);
+                
+                let version_json_dir = format!("{}/version_jsons", home_dir_str);
+
+                if Path::new(&version_json_dir).exists() {
+                    println!("version_jsons dir already exists, ignoring...")
                 }
+                
+                else {
+                    fs::create_dir(&version_json_dir).expect("Failed to create dir.");
+                    println!("Created {}", &version_json_dir)
+                }
+
+                if Path::new(&format!("{}/release", version_json_dir)).exists(){
+                    println!("release dir already exists, ignoring...")
+                }
+                else  {
+                    fs::create_dir(format!("{}/release", &version_json_dir)).expect("Failed to create directory!");
+                    println!("Created {version_json_dir}/release");
+                }
+
+                if Path::new(&format!("{}/snapshot", version_json_dir)).exists() {
+                    println!("snapshot dir already exists, ignoring...")
+                }
+                else  {
+                    fs::create_dir(format!("{}/snapshot", &version_json_dir)).expect("Failed to create directory!");
+                    println!("Created {version_json_dir}/snapshot");
+                }
+
+                if Path::new(&mc_dir).exists() {
+                    println!(".minecraft dir already exists, ignoring...")
+                }
+                else  {
+                    fs::create_dir(&mc_dir).expect("Failed to create dir.");
+                    println!("Created {}", mc_dir);
+                }
+    
+                // check for minecraft directory
+                
+                if Path::new(&format!("{}/versions", mc_dir)).exists() {
+                    println!("versions dir already exists, ignoring...")
+                }
+                else  {
+                    fs::create_dir(format!("{}/versions", mc_dir)).expect("Failed to create dir.");
+                    println!("Created {mc_dir}/versions");
+                }
+    
+    
+                if Path::new(&format!("{}/libraries", mc_dir)).exists() {
+                    println!("libraries dir already exists, ignoring...")
+                }
+                else  {
+                    fs::create_dir(format!("{}/libraries", mc_dir)).expect("Failed to create dir.");
+                    println!("Created {mc_dir}/libraries");
+                }
+                
+    
+                if Path::new(&format!("{}/assets", mc_dir)).exists() {
+                    println!("assets dir already exists, ignoring...")
+                }
+                else  {
+                    fs::create_dir(format!("{}/assets", mc_dir)).expect("Failed to create dir.");
+                    println!("Created {mc_dir}/assets");
+                }
+    
+                requests::file_downloader::async_download_file("https://launchermeta.mojang.com/mc/game/version_manifest.json", &version_json_dir).expect("Error fetching data!");
+    
+                let f1 = fs::read_to_string(format!("{}/version_manifest.json", version_json_dir)).expect("Error opening file!");
+    
+                //let json_value: serde_json::value::Value = serde_json::from_str(f1.as_str())?;
+    
+                let versions_manifest: VersionsManifest = serde_json::from_str(f1.as_str())?;
+    
+                
+            
+                let snapshots_and_releases= versions_manifest.versions.iter()
+                    .filter(|version| matches!(version.kind, VersionKind::Release | VersionKind::Snapshot));
+    
+    
+                for version in snapshots_and_releases {
+                    if version.kind == VersionKind::Release {
+                        requests::file_downloader::async_download_file(&version.url, &format!("{}/release", version_json_dir)).expect("Error downloading file!");
+                    }
+    
+                    if version.kind == VersionKind::Snapshot {
+                        requests::file_downloader::async_download_file(&version.url, &format!("{}/snapshot", version_json_dir)).expect("Error downloading file!");
+                    }
+                }
+
+
             }
 
             Ok(())
@@ -204,7 +294,19 @@ pub mod main {
 
             let sys_username = username();
 
-            let home_dir_str = format!("C:\\Users\\{}", sys_username);
+            let mut home_dir_str = String::new();
+
+            if os_type == "windows".trim() {
+                home_dir_str = format!("C:\\Users\\{}", sys_username);
+                println!("{}", home_dir_str)
+            }
+
+            else if os_type == "linux".trim() {
+                home_dir_str = format!("/home/{}", sys_username);
+                println!("{}", home_dir_str)
+            }
+
+             
 
             if r#type == "release" {
 
@@ -227,21 +329,48 @@ pub mod main {
                     let json_value: serde_json::value::Value = serde_json::from_str(&a).expect("Error parsing!");
 
                     let map1 = json_value["downloads"]["client"].as_object().unwrap();
-                    //let map2 = json_value["downloads"]["client_mappings"].as_object().unwrap();
+
 
                     let jar_url = map1.get("url").unwrap().as_str().unwrap();
-                    //let jar_mappings_url = map2.get("url").unwrap().as_str().unwrap();
+
 
 
                     println!("{}", jar_url);
-                    //println!("{}", jar_mappings_url);
+
 
                     requests::file_downloader::async_download_file(jar_url, &format!("{}/versions/{}", mc_dir, game_ver)).expect("Error downloading file");
                     //requests::file_downloader::async_download_file(&jar_mappings_url, &format!("{}/versions/{}", mc_dir, game_ver)).expect("Error downloading file");
                     fs::rename(format!("{}/versions/{}/client.jar", mc_dir, game_ver), format!("{}/versions/{}/{}.jar", mc_dir, game_ver, game_ver)).expect("Error renaming file!");
-                    //fs::rename(format!("{}/versions/{}/client.txt", mc_dir, game_ver), format!("{}/versions/{}/{}.txt", mc_dir, game_ver, game_ver)).expect("Error renaming file!");
+                   
                     println!("Renamed client.jar => {}.jar", game_ver);
-                    //println!("Renamed client.txt => {}.txt", game_ver)
+
+
+                }
+
+                else if os_type == "linux".trim() {
+
+                    fs::copy(format!("{}/version_jsons/release/{}.json", home_dir_str, game_ver), format!("{}/versions/{}/{}.json", mc_dir, game_ver, game_ver)).expect("Error copying file!");
+                    println!("Copied {}.json", game_ver);
+
+                    let a = fs::read_to_string(format!("{}/version_jsons/release/{}.json", home_dir_str, game_ver)).expect("Error reading file!");
+
+                    let json_value: serde_json::value::Value = serde_json::from_str(&a).expect("Error parsing!");
+
+                    let map1 = json_value["downloads"]["client"].as_object().unwrap();
+
+
+                    let jar_url = map1.get("url").unwrap().as_str().unwrap();
+
+
+
+                    println!("{}", jar_url);
+
+
+                    requests::file_downloader::async_download_file(jar_url, &format!("{}/versions/{}", mc_dir, game_ver)).expect("Error downloading file");
+                    
+                    fs::rename(format!("{}/versions/{}/client.jar", mc_dir, game_ver), format!("{}/versions/{}/{}.jar", mc_dir, game_ver, game_ver)).expect("Error renaming file!");
+                    
+                    println!("Renamed client.jar => {}.jar", game_ver);
 
                 }
                 
@@ -268,17 +397,6 @@ pub mod main {
                 #[serde(default)]
                 rules: Option<Vec<Rules>>
         }
-
-        // impl Iterator for &Libraries {
-        //     type Item = String;
-
-        //     fn next(&mut self) -> Option<Self::Item> {
-        //         let name = self.name.clone();
-
-        //         Some(name)
-        //     }
-
-        // }
             
         #[derive(Debug, Serialize, Deserialize)]
         struct Rules {
@@ -319,11 +437,6 @@ pub mod main {
             
 
             let mc_dir = format!("{}/.minecraft", install_dir);
-            let os_type = env::consts::OS; // os type
-
-            // let user_home_dir = env::home_dir().unwrap(); // more like home dir in unix based systems
-            // let home_dir_str = user_home_dir.as_os_str().to_str().unwrap(); // converting to str
-
 
 
             let libs_info = fs::read_to_string(format!("{}/versions/{}/{}.json", mc_dir, game_ver, game_ver)).expect("Error reading file!");
@@ -331,11 +444,85 @@ pub mod main {
             let libs_json: Res = serde_json::from_str(&libs_info).expect("Error parsing!");
 
             
-            if cfg!(target_os = "windows") && os_type == "windows".trim() {
+            if cfg!(target_os = "windows") {
                 // downloading windows only libs
 
                 let libs_iter1 = libs_json.libraries.iter()
                     .filter(|data| data.downloads.artifact.url.contains("lwjgl") && data.downloads.artifact.url.contains("windows") || data.downloads.artifact.url.contains("text2speech-1.13.9-natives-windows"));
+
+
+                //println!("Windows only libraries.");
+
+                let mut lib_url_array: Vec<&String> = Vec::new();
+                let mut dirpath_array: Vec<String> = Vec::new();
+
+                let cwd = install_dir;
+
+                for lib in libs_iter1 {
+                    // println!("{}", lib.downloads.artifact.url)
+                    let path1 = Path::new(&lib.downloads.artifact.path);
+
+                    // println!("{}", path1.parent().unwrap().to_string_lossy())
+                    lib_url_array.push(&lib.downloads.artifact.url);
+                    dirpath_array.push(path1.parent().unwrap().to_string_lossy().to_string());
+
+                }
+
+
+                // filter out the rest of the platform independent libs.
+
+                let libs_iter2 = libs_json.libraries.iter()
+                     .filter(|data1| data1.downloads.artifact.url.contains("logging") || data1.downloads.artifact.url.contains("blocklist") || data1.downloads.artifact.url.contains("patchy") || data1.downloads.artifact.url.contains("oshi") || data1.downloads.artifact.url.contains("jna") || data1.downloads.artifact.url.contains("slf4j") || data1.downloads.artifact.url.contains("ibm") || data1.downloads.artifact.url.contains("javabridge") && data1.downloads.artifact.url.contains("jopt-simple") || data1.downloads.artifact.url.contains("guava") || data1.downloads.artifact.url.contains("commons") || data1.downloads.artifact.url.contains("commons-io") || data1.downloads.artifact.url.contains("brigadier") || data1.downloads.artifact.url.contains("datafixerupper") || data1.downloads.artifact.url.contains("gson") || data1.downloads.artifact.url.contains("authlib") || data1.downloads.artifact.url.contains("httpcomponents") || data1.downloads.artifact.url.contains("commons-logging") || data1.downloads.artifact.url.contains("fastutil") || data1.downloads.artifact.url.contains("text2speech-1.13.9.jar") || data1.downloads.artifact.url.contains("io/netty"));
+
+
+                //println!("Platform independent libraries.");
+
+                for lib2 in libs_iter2 {
+                    // println!("{}", lib2.downloads.artifact.url)
+
+                    let path2 = Path::new(&lib2.downloads.artifact.path);
+
+                    lib_url_array.push(&lib2.downloads.artifact.url);
+                    dirpath_array.push(path2.parent().unwrap().to_string_lossy().to_string());
+
+                    // println!("{}", path2.parent().unwrap().to_string_lossy())
+                }
+
+                
+                env::set_current_dir(format!("{}/libraries", mc_dir)).expect("Error changing directories");
+
+                for dir in dirpath_array.iter() {
+                    
+
+                    if Path::new(&format!("{}", dir)).exists() {
+                        println!("{} dir already exists, ignoring...", dir)
+                    }
+                    else {
+                       fs::create_dir_all(format!("{}", dir)).expect("Failed to create dir."); // recursively creates all directories in a path.
+                       println!("Created {mc_dir}/libraries/{dir}");
+                    }
+   
+                }
+                
+
+                for (url, dir1) in lib_url_array.iter().zip(dirpath_array.iter()) {
+                    //println!("{} => {}", url, dir1)
+
+                    requests::file_downloader::async_download_file(url, dir1).expect("Error downloading libraries!");
+                }
+                
+                env::set_current_dir(cwd).expect("Error changing directories!");
+
+                println!("All libraries have been downloaded successfully");
+            }
+
+
+            else if cfg!(target_os = "linux") {
+
+                // download linux only libraries
+
+                let libs_iter1 = libs_json.libraries.iter()
+                    .filter(|data| data.downloads.artifact.url.contains("lwjgl") && data.downloads.artifact.url.contains("linux") || data.downloads.artifact.url.contains("text2speech-1.13.9-natives-linux"));
 
 
                 //println!("Windows only libraries.");
@@ -548,11 +735,11 @@ pub mod main {
         /// extract_natives("1.19.2", "minecraft_installation_directory", "path_to_extract_natives_to", "windows/linux/osx");
         /// 
         /// ```
-        pub fn extract_natives(game_ver:&str, install_dir: &str ,path_to_extract:&str, platform:&str) {
+        pub fn extract_natives(game_ver:&str, install_dir: &str, platform:&str) {
 
             println!("Checking for natives directory....");
             
-            let mc_dir = format!("{}\\.minecraft", install_dir);
+            let mc_dir = format!("{}/.minecraft", install_dir);
 
             let libs_info = fs::read_to_string(format!("{}/versions/{}/{}.json", mc_dir, game_ver, game_ver)).expect("Error reading file!");
 
@@ -581,24 +768,64 @@ pub mod main {
 
                 for dir in dirpath_array.iter() {
                     
-                    if Path::new(&format!("{path_to_extract}\\natives\\{dir}")).exists() {
+                    if Path::new(&format!("{mc_dir}\\natives\\{dir}")).exists() {
                         println!("{} dir already exists, ignoring...", dir)
                     }
                     else {
-                       fs::create_dir_all(format!("{path_to_extract}\\natives\\{dir}")).expect("Failed to create dir."); // recursively creates all directories in a path.
-                       println!("Created {path_to_extract}\\natives\\{dir}");
+                       fs::create_dir_all(format!("{mc_dir}\\natives\\{dir}")).expect("Failed to create dir."); // recursively creates all directories in a path.
+                       println!("Created {mc_dir}\\natives\\{dir}");
                     }
    
                 }
 
                 for (url, dir1) in lib_url_array.iter().zip(dirpath_array.iter()) {
 
-                    requests::file_downloader::async_download_file(url, &format!("{path_to_extract}\\natives\\{dir1}")).expect("Error downloading libraries!");
+                    requests::file_downloader::async_download_file(url, &format!("{mc_dir}\\natives\\{dir1}")).expect("Error downloading libraries!");
                 }
                 
                 println!("All natives have been extracted successfully.");
 
 
+            }
+
+            else if cfg!(target_os = "linux") && platform == "linux".trim() {
+                let libs_iter1 = libs_json.libraries.iter()
+                    .filter(|data| data.downloads.artifact.url.contains("lwjgl") && data.downloads.artifact.url.contains("linux") || data.downloads.artifact.url.contains("text2speech-1.13.9-natives-linux"));
+
+
+                println!("Linux only libraries.");
+
+                let mut lib_url_array: Vec<&String> = Vec::new();
+                let mut dirpath_array: Vec<String> = Vec::new();
+
+
+                for lib in libs_iter1 {
+                    let path1 = Path::new(&lib.downloads.artifact.path);
+
+                    lib_url_array.push(&lib.downloads.artifact.url);
+                    dirpath_array.push(path1.parent().unwrap().to_string_lossy().to_string());
+
+                }
+
+                for dir in dirpath_array.iter() {
+
+                    
+                    if Path::new(&format!("{mc_dir}/natives/{dir}")).exists() {
+                        println!("{} dir already exists, ignoring...", dir)
+                    }
+                    else {
+                        fs::create_dir_all(format!("{mc_dir}/natives/{dir}")).expect("Failed to create dir."); // recursively creates all directories in a path.
+                        println!("Created {mc_dir}/natives/{dir}");
+                    }
+   
+                }
+
+                for (url, dir1) in lib_url_array.iter().zip(dirpath_array.iter()) {
+
+                    requests::file_downloader::async_download_file(url, &format!("{mc_dir}/natives/{dir1}")).expect("Error downloading libraries!");
+                }
+                
+                println!("All natives have been extracted successfully.");
             }
 
         }
@@ -642,7 +869,16 @@ pub mod main {
             }
 
 
-            let mc_dir = format!("{}\\.minecraft", install_dir);
+            
+            let mut mc_dir = String::new();
+
+            if cfg!(target_os = "windows") {
+                mc_dir = format!("{}\\.minecraft", install_dir);
+            }
+
+            else if cfg!(target_os = "linux") {
+                mc_dir = format!("{}/.minecraft", install_dir);
+            }
 
             let game_info = fs::read_to_string(format!("{}/versions/{}/{}.json", mc_dir, game_ver, game_ver)).expect("Error reading file!");
 
@@ -652,7 +888,15 @@ pub mod main {
 
             let xml_id = game_files.logging.client.file.id;
 
-            let constructed_argument = format!("{arg}={install_dir}\\.minecraft\\assets\\log_configs\\{xml_id}");
+            let mut constructed_argument = String::new();
+
+            if cfg!(target_os = "windows") {
+                constructed_argument = format!("{arg}={install_dir}\\.minecraft\\assets\\log_configs\\{xml_id}");
+            }
+
+            else if cfg!(target_os = "linux") {
+                constructed_argument = format!("{arg}={install_dir}/.minecraft/assets/log_configs/{xml_id}");
+            }
 
             constructed_argument
 
@@ -681,7 +925,15 @@ pub mod main {
                 r#type: String
             }
 
-            let mc_dir = format!("{}\\.minecraft", install_dir);
+            let mut mc_dir = String::new();
+
+            if cfg!(target_os = "windows") {
+                mc_dir = format!("{}\\.minecraft", install_dir);
+            }
+
+            else if cfg!(target_os = "linux") {
+                mc_dir = format!("{}/.minecraft", install_dir);
+            }
 
             let game_info = fs::read_to_string(format!("{}/versions/{}/{}.json", mc_dir, game_ver, game_ver)).expect("Error reading file!");
 
@@ -701,11 +953,19 @@ pub mod main {
         /// ```
         /// use minecraft_downloader_core::main::game_downloader::get_class_path;
         /// 
-        /// get_main_class("minecraft_installation_path", "1.19.2")
+        /// get_class_path("minecraft_installation_path", "1.19.2")
         /// ```
         pub fn get_class_path(install_dir: &str, game_ver: &str) -> String{
 
-            let mc_dir = format!("{}\\.minecraft", install_dir);
+            let mut mc_dir = String::new();
+
+            if cfg!(target_os = "windows") {
+                mc_dir = format!("{}\\.minecraft", install_dir);
+            }
+
+            else if cfg!(target_os = "linux") {
+                mc_dir = format!("{}/.minecraft", install_dir);
+            }
 
             let libs_info = fs::read_to_string(format!("{}/versions/{}/{}.json", mc_dir, game_ver, game_ver)).expect("Error reading file!");
 
@@ -735,7 +995,14 @@ pub mod main {
                 }
             }
 
-            
+            else if cfg!(target_os = "linux") {
+                let native_str = libs_json.libraries.iter()
+                .filter(|data|data.downloads.artifact.path.contains("natives-linux"));
+
+                for native_paths in native_str {
+                    classpath+=&format!("{}\\libraries\\{};", mc_dir ,native_paths.downloads.artifact.path)
+                }
+            }
         
             classpath
             

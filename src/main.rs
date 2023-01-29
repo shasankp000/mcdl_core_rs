@@ -6,23 +6,23 @@ fn main() {
 
     // MANUAL TESTS
 
-    //main::game_downloader::extract_natives("1.19.2", "D:\\python_programs\\pycraft", "./", "windows")
+    //main::game_downloader::extract_natives("1.19.2", "./", "linux")
 
-    // let arg = main::game_downloader::get_logging_arg("1.19.2", "D:\\python_programs\\pycraft");
+    // let arg = main::game_downloader::get_logging_arg("1.19.2", "./");
 
     // println!("{arg}");
 
-    // let main_class = main::game_downloader::get_main_class("1.19.2", "D:\\python_programs\\pycraft");
+    // let main_class = main::game_downloader::get_main_class("1.19.2", "./");
 
     // print!("{main_class}");
 
-    // let cp = main::game_downloader::get_class_path("D:\\python_programs\\pycraft", "1.19.2");
+    // let cp = main::game_downloader::get_class_path("./", "1.19.2");
 
     // println!("{cp}");
 
     //main::game_downloader::rule_says_yes("D:\\python_programs\\pycraft", "1.19.2");
 
-    // main::config_updater::update_configs("./").expect("Error updating configs");
+    //main::config_updater::update_configs("./").expect("Error updating configs");
 
     //main::game_downloader::version_downloader("1.19.2", "./", "release").expect("Error downloading game!");
 
