@@ -1,9 +1,15 @@
 # mcdl_core_rs
 A Minecraft downloader written in rust
 
+
 ## Changelog v0.1.4
 
 Removed all deprecated functions.
+
+## Changelog v0.1.5
+
+Added linux support.
+
 
 ## Features 
 
@@ -73,13 +79,13 @@ Added some new functions related to minecraft launcher, which will also be used 
 
 Downloads native libraries for the given game version to a given path.
 Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded
-This function can be used my minecraft launcher libraries to extract the natives to a certain path and pass it to the minecraft launching command.
+This function can be used my minecraft launcher libraries to extract the natives to ~~a certain path~~ the existing .minecraft directory and pass it to the minecraft launching command.
 
 ```use minecraft_downloader_core::main::game_downloader::extract_natives;```
  
-```extract_natives("1.19.2", "minecraft_installation_directory", "path_to_extract_natives_to", "windows/linux/osx");```
+```extract_natives("1.19.2", "minecraft_installation_directory", "windows/linux/osx");```
 
-Implemented only for windows at the moment.
+Implemented only for windows and linux at the moment.
 
 ## get_logging_arg
 
@@ -93,21 +99,22 @@ This function can be used my minecraft launcher libraries to get the log4j2 coni
 
 ```get_logging_arg("1.19.2", "minecraft_installation_path")```
 
+# Changelog v0.1.3
+
+Added a new function get_class_path
+
+
 ## get_main_class
 
 Gets the mainClass of minecraft for the given game version.
 
 Note: This function assumes that the game has already been installed, i.e, jarFile, libraries and assets have been downloaded.
 
-This function can be used by minecraft launcher libraries to get the mainClass and pass it to the minecraft launching command.
+This function can be used my minecraft launcher libraries to get the mainClass and pass it to the minecraft launching command.
 
 ```use minecraft_downloader_core::main::game_downloader::get_main_class;```
 
 ```get_main_class("1.19.2", "minecraft_installation_path")```
-
-# Changelog v0.1.3
-
-Added a new function get_class_path
 
 ## get_class_path
 
@@ -121,4 +128,4 @@ This function can be used by minecraft launcher libraries to get the mainClass a
 
 ```get_class_path("minecraft_installation_path", "1.19.2")```
 
-This project uses https://github.com/shasankp000/requests_rs (updated to v0.1.5)
+This project uses https://github.com/shasankp000/requests_rs (updated to v0.1.6)
