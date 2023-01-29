@@ -768,11 +768,11 @@ pub mod main {
 
                 for dir in dirpath_array.iter() {
                     
-                    if Path::new(&format!("{mc_dir}\\natives\\{dir}")).exists() {
+                    if Path::new(&format!("{mc_dir}\\versions\\{game_ver}\\natives\\{dir}")).exists() {
                         println!("{} dir already exists, ignoring...", dir)
                     }
                     else {
-                       fs::create_dir_all(format!("{mc_dir}\\natives\\{dir}")).expect("Failed to create dir."); // recursively creates all directories in a path.
+                       fs::create_dir_all(format!("{mc_dir}\\versions\\{game_ver}\\natives\\{dir}")).expect("Failed to create dir."); // recursively creates all directories in a path.
                        println!("Created {mc_dir}\\natives\\{dir}");
                     }
    
@@ -780,7 +780,7 @@ pub mod main {
 
                 for (url, dir1) in lib_url_array.iter().zip(dirpath_array.iter()) {
 
-                    requests::file_downloader::async_download_file(url, &format!("{mc_dir}\\natives\\{dir1}")).expect("Error downloading libraries!");
+                    requests::file_downloader::async_download_file(url, &format!("{mc_dir}\\versions\\{game_ver}\\natives\\{dir1}")).expect("Error downloading libraries!");
                 }
                 
                 println!("All natives have been extracted successfully.");
@@ -810,11 +810,11 @@ pub mod main {
                 for dir in dirpath_array.iter() {
 
                     
-                    if Path::new(&format!("{mc_dir}/natives/{dir}")).exists() {
+                    if Path::new(&format!("{mc_dir}/versions/{game_ver}/natives/{dir}")).exists() {
                         println!("{} dir already exists, ignoring...", dir)
                     }
                     else {
-                        fs::create_dir_all(format!("{mc_dir}/natives/{dir}")).expect("Failed to create dir."); // recursively creates all directories in a path.
+                        fs::create_dir_all(format!("{mc_dir}/versions/{game_ver}/natives/{dir}")).expect("Failed to create dir."); // recursively creates all directories in a path.
                         println!("Created {mc_dir}/natives/{dir}");
                     }
    
@@ -822,7 +822,7 @@ pub mod main {
 
                 for (url, dir1) in lib_url_array.iter().zip(dirpath_array.iter()) {
 
-                    requests::file_downloader::async_download_file(url, &format!("{mc_dir}/natives/{dir1}")).expect("Error downloading libraries!");
+                    requests::file_downloader::async_download_file(url, &format!("{mc_dir}/versions/{game_ver}/natives/{dir1}")).expect("Error downloading libraries!");
                 }
                 
                 println!("All natives have been extracted successfully.");
